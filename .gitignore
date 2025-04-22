@@ -29,3 +29,9 @@ bin/
 .DS_Store
 
 /resources
+
+## c++
+src/C++/build
+src/C++/lib/libpqxx-7.4.1
+src/C++/lib/fast-cpp-csv-parser
+src/C++/include
