@@ -1,10 +1,13 @@
 # E-R diagram
-![[E-R.png]]
+
 - The E-R diagram is drawn on the processon
 
 # Database Design
-![[database-diagram 2.png]]
 
+
+(create table statements file is in `/create_table.sql`)
+
+## Content Description
 ### **1. supply_center**
 - ​**Purpose**: Stores information about supply centers.
 - ​**Columns**:
@@ -51,3 +54,38 @@
     - `estimated_delivery_date`: Planned delivery date.
     - `lodgement_date`: Actual delivery date.
     - `salesman_number` (FK): Salesperson responsible for the order.
+
+# Data Import
+
+in src/
+
+| Script name               | Author      | Description                                  |
+| ------------------------- | ----------- | -------------------------------------------- |
+| /Java/Load.java           | Yao Shengqi | The main function. Run this with parameters  |
+| /Java/LowLoad.java        | Yao Shengqi | The class that imports the data in serial    |
+| /Java/ConcurrentLoad.java | Yao Shengqi | The class that imports the data concurrently |
+| /Java/PrepareTool.java    | Yao Shengqi | The class that provides preparing method     |
+
+### How to use
+
+#### Java
+1. Import all the .jar file in `/dependencies`. Notice the postgresql dependency is not included.
+2. Use `create_table.sql` to create table.
+3. Modify the `resources/dbUser.properties`. Edit the 'database', 'user', 'pwd', 'port'
+4. Move the original (or modified) .csv file under path `/resources`. Rename the file `output25S.csv`
+5. Open `/src/Java/Load.java`, run with parameters:
+	1. `0` concurrent mode
+	2. `1` serial mode
+
+
+# Advanced
+
+### Optimization
+
+#### Java
+- In concurrent mode, the script first parses the data and stores it into a list. It then imports the data in three concurrent batches based on parent-child table relationships. Each batch is mutually independent, allowing concurrent imports. Lower-level data depends on the completion of higher-level data. The third batch exclusively imports the ​order_details​ table by splitting the list into multiple sub-batches for multi-threaded import.
+#### Comparision  
+
+
+### Multiple System Supported
+#### MacOS

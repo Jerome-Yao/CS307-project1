@@ -1,10 +1,9 @@
+package javaImplementation;
+
 import com.opencsv.CSVReader;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.InputStreamReader;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -90,7 +89,7 @@ public class ConcurrentLoad {
                 });
     }
 
-    private void parseCsv(List<ClientRecord> clients, List<SalesRecord> sales, List<ProductRecord> products, List<ProductModelRecord> productModel, List<ContractRecord> contract, List<OrderRecord> order) throws Exception {
+    public void parseCsv(List<ClientRecord> clients, List<SalesRecord> sales, List<ProductRecord> products, List<ProductModelRecord> productModel, List<ContractRecord> contract, List<OrderRecord> order) throws Exception {
         // 与原代码相同，通过 CSV 文件解析其他表数据
         try (CSVReader reader = new CSVReader(new FileReader(CSV_PATH))) {
             System.out.println("open csv successfully");
@@ -158,70 +157,6 @@ public class ConcurrentLoad {
         }
     }
 
-    //    private void secondParse(List<ProductModelRecord> product, List<ContractRecord> contract) throws Exception {
-//        // 与原代码相同，通过 CSV 文件解析其他表数据
-//        try (CSVReader reader = new CSVReader(new FileReader(CSV_PATH))) {
-//            System.out.println("open csv successfully");
-//            String[] headers = reader.readNext();
-//            String[] row;
-//
-//            while ((row = reader.readNext()) != null) {
-//                Map<String, String> rowMap = toRowMap(headers, row);
-//                // 提取各表数据（根据实际字段填充）
-//                product.add(new ProductModelRecord(
-//                        rowMap.get("product code"),
-//                        rowMap.get("product model"),
-//                        Integer.parseInt(rowMap.get("unit price"))
-//                ));
-//
-//                contract.add(new ContractRecord(
-//                        rowMap.get("contract number"),
-//                        rowMap.get("client enterprise"),
-//                        LocalDate.parse(rowMap.get("contract date"), DATE_FORMATTER)
-//                ));
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException("解析 CSV 文件失败", e);
-//        }
-//    }
-//
-//    private void orderParse(List<OrderRecord> order) throws Exception {
-//        // 与原代码相同，通过 CSV 文件解析其他表数据
-//        try (CSVReader reader = new CSVReader(new FileReader(CSV_PATH))) {
-//            System.out.println("open csv successfully");
-//            String[] headers = reader.readNext();
-//            String[] row;
-//
-//            while ((row = reader.readNext()) != null) {
-//                Map<String, String> rowMap = toRowMap(headers, row);
-//                // 提取各表数据（根据实际字段填充）
-//                LocalDate estDeliveryDate;
-//                LocalDate lodgementDate;
-//                if (rowMap.get("estimated delivery date").equals("") || rowMap.get("estimated delivery date") == null) {
-//                    estDeliveryDate = null;
-//                } else {
-//                    estDeliveryDate = LocalDate.parse(rowMap.get("estimated delivery date"), DATE_FORMATTER);
-//                }
-//                if (rowMap.get("lodgement date").equals("") || rowMap.get("lodgement date") == null) {
-//                    lodgementDate = null;
-//                } else {
-//                    lodgementDate = LocalDate.parse(rowMap.get("lodgement date"), DATE_FORMATTER);
-//                }
-//
-//                order.add(new OrderRecord(
-//                        rowMap.get("contract number"),
-//                        rowMap.get("product code"),
-//                        rowMap.get("product model"),
-//                        Integer.parseInt(rowMap.get("quantity")),
-//                        estDeliveryDate,
-//                        lodgementDate,
-//                        Integer.parseInt(rowMap.get("salesman number"))
-//                ));
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException("解析 CSV 文件失败", e);
-//        }
-//    }
     // 分批次工具方法
     private <T> List<List<T>> splitIntoBatches(List<T> list, int batchSize) {
         List<List<T>> batches = new ArrayList<>();
@@ -424,7 +359,7 @@ public class ConcurrentLoad {
         return map;
     }
 
-    private static class ClientRecord extends Data {
+    private static class ClientRecord {
         String clientName;
         String country;
         String supplyCenter;
@@ -445,7 +380,7 @@ public class ConcurrentLoad {
         // 构造方法、Getter
     }
 
-    private static class SalesRecord extends Data {
+    private static class SalesRecord {
         String salesmanNumber;
         String salesmanName;
         String gender;
@@ -466,7 +401,7 @@ public class ConcurrentLoad {
         // 构造方法、Getter
     }
 
-    private static class ProductRecord extends Data {
+    private static class ProductRecord {
         String productCode;
         String productName;
 
@@ -480,7 +415,7 @@ public class ConcurrentLoad {
         }
     }
 
-    private static class ProductModelRecord extends Data {
+    private static class ProductModelRecord {
         String productCode;
         String productModel;
         int unit_price;
@@ -492,7 +427,7 @@ public class ConcurrentLoad {
         }
     }
 
-    private static class ContractRecord extends Data {
+    private static class ContractRecord {
         String contractNumber;
         String clientName;
         LocalDate contractDate;
@@ -506,9 +441,6 @@ public class ConcurrentLoad {
         public String getContractNumber() {
             return contractNumber;
         }
-    }
-
-    private static class Data {
     }
 
     private static class OrderRecord {
