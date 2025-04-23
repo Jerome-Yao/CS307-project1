@@ -1,3 +1,5 @@
+package javaImplementation;
+
 import com.opencsv.CSVReader;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -10,7 +12,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class LowLoad {
     private final Connection conn;
@@ -313,7 +314,7 @@ public class LowLoad {
         return map;
     }
 
-    private static class ClientRecord extends Data {
+    public static class ClientRecord   {
         String clientName;
         String country;
         String supplyCenter;
@@ -334,7 +335,7 @@ public class LowLoad {
         // 构造方法、Getter
     }
 
-    private static class SalesRecord extends Data {
+    private static class SalesRecord   {
         String salesmanNumber;
         String salesmanName;
         String gender;
@@ -355,7 +356,7 @@ public class LowLoad {
         // 构造方法、Getter
     }
 
-    private static class ProductRecord extends Data {
+    private static class ProductRecord   {
         String productCode;
         String productName;
 
@@ -369,7 +370,7 @@ public class LowLoad {
         }
     }
 
-    private static class ProductModelRecord extends Data {
+    private static class ProductModelRecord   {
         String productCode;
         String productModel;
         int unit_price;
@@ -381,7 +382,7 @@ public class LowLoad {
         }
     }
 
-    private static class ContractRecord extends Data {
+    public static class ContractRecord  {
         String contractNumber;
         String clientName;
         LocalDate contractDate;
