@@ -12,7 +12,7 @@ DB_CONFIG = {
     "port": "5432"
 }
 
-file_path = "/media/wgx/Ventoy/learn/25spring/database/CS307-project1/resources/output25S.csv"
+file_path = "../../resources/output25S.csv"
 abs_file_path = os.path.abspath(file_path)
 
 # 数据清洗函数
