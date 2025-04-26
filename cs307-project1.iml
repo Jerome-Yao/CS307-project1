@@ -61,5 +61,10 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="slf4j-api-1.7.30" level="project" />
+    <orderEntry type="library" name="commons-lang3-3.17.0" level="project" />
+    <orderEntry type="library" name="HikariCP-5.0.1" level="project" />
+    <orderEntry type="library" name="opencsv-5.10" level="project" />
+    <orderEntry type="library" name="postgresql-42.7.5" level="project" />
   </component>
 </module>

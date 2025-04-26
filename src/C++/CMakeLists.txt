@@ -20,6 +20,8 @@ include_directories(${PostgreSQL_INCLUDE_DIRS})
 # Add the executable
 add_executable(load_single load_single.cpp)
 add_executable(load_parallel load_parallel.cpp)
+add_executable(load_imp_sin load_imp_sin.cpp)
+add_executable(load_imp_par load_imp_par.cpp)
 
 # Find pqxx library
 find_library(PQXX_LIB pqxx REQUIRED)
@@ -40,10 +42,26 @@ target_link_libraries(load_parallel
     pq  # 添加 PostgreSQL C 客户端库
 )
 
+target_link_libraries(load_imp_sin 
+    PRIVATE 
+    ${PostgreSQL_LIBRARIES} 
+    ${PQXX_LIB}
+    pq  # 添加 PostgreSQL C 客户端库
+)
+
+target_link_libraries(load_imp_par 
+    PRIVATE 
+    ${PostgreSQL_LIBRARIES} 
+    ${PQXX_LIB}
+    pq  # 添加 PostgreSQL C 客户端库
+)
+
 # Add compiler flags if needed
 if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(load_single PRIVATE -Wall -Wextra)
     target_compile_options(load_parallel PRIVATE -Wall -Wextra)
+    target_compile_options(load_imp_sin PRIVATE -Wall -Wextra)
+    target_compile_options(load_imp_par PRIVATE -Wall -Wextra)
 endif()
 
 # Print PostgreSQL info for debugging
