@@ -173,3 +173,16 @@ in `src/C++`
 
 #### OpenGauss
 
+![](./opengauss.png)
+
+### import data with different data volumes
+
+| data volume | single-thread time(s) | multithreading time(s) |
+| :---------: | :-------------------: | :--------------------: |
+|     25%     |         10.24         |          4.82          |
+|     30%     |         10.55         |          5.03          |
+|     50%     |         10.99         |          5.11          |
+|     75%     |         11.74         |          5.40          |
+|    100%     |         12.49         |          5.70          |
+
+![](./tools/diff_vol.png)
