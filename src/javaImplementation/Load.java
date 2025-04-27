@@ -15,7 +15,8 @@ import com.zaxxer.hikari.HikariDataSource;
 public class Load {
     private static Connection conn = null;
     private static PreparedStatement stmt = null;
-    private static HikariDataSource dataSource=null;
+    private static HikariDataSource dataSource = null;
+    public static int maxThreads;
 
     //open database
     private static void openDB(Properties prop) {
@@ -26,6 +27,7 @@ public class Load {
             System.exit(1);
         }
         String url = "jdbc:postgresql://" + prop.getProperty("host") + "/" + prop.getProperty("database");
+        maxThreads = prop.getProperty("maxThreads") == null ? 4 : Integer.parseInt(prop.getProperty("maxThreads"));
         try {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(url);
@@ -33,7 +35,7 @@ public class Load {
             config.setPassword(prop.getProperty("password"));
             config.setMaximumPoolSize(10);
             config.setAutoCommit(false);
-            dataSource=new HikariDataSource(config);
+            dataSource = new HikariDataSource(config);
             conn = DriverManager.getConnection(url, prop);
             if (conn != null) {
                 System.out.println("Successfully connected to the database "
@@ -84,19 +86,16 @@ public class Load {
         try {
             if (args[0].equals("0")) {
                 System.out.println("concurrent mode");
-                ConcurrentLoad concurrentLoad = new ConcurrentLoad(conn,dataSource);
+                ConcurrentLoad concurrentLoad = new ConcurrentLoad(conn, dataSource);
                 concurrentLoad.load();
-            }
-            else if(args[0].equals("1")){
+            } else if (args[0].equals("1")) {
                 System.out.println("low load mode");
-                LowLoad load = new LowLoad(conn,dataSource);
+                LowLoad load = new LowLoad(conn, dataSource);
                 load.load();
-            }
-            else {
+            } else {
                 System.out.println("illegal argument");
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("加载数据失败: " + e.getMessage());
             e.printStackTrace();
             try {
@@ -107,7 +106,7 @@ public class Load {
             }
         }
         long end = System.currentTimeMillis();
-        System.out.println("Loading speed : " + (end - start)/1000.0 + " s");
+        System.out.println("Loading speed : " + (end - start) / 1000.0 + " s");
 
     }
 }

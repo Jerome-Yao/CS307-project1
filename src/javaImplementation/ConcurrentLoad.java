@@ -24,9 +24,9 @@ public class ConcurrentLoad {
     public ConcurrentLoad(Connection conn, HikariDataSource dataSource) {
         this.conn = conn;
         this.dataSource = dataSource;
-        this.executor = Executors.newFixedThreadPool(8); // 按需调整线程数
+        this.executor = Executors.newFixedThreadPool(Load.maxThreads);
         try {
-            this.conn.setAutoCommit(false); // 关闭自动提交
+            this.conn.setAutoCommit(false);
         } catch (SQLException e) {
             throw new RuntimeException("初始化连接失败", e);
         }
@@ -74,13 +74,10 @@ public class ConcurrentLoad {
 
     public CompletableFuture<Void> insertAllOrders(List<OrderRecord> orders) {
         long startTime = System.currentTimeMillis();
-        // 1. 将数据切分为多个批次
         List<List<OrderRecord>> batches = splitIntoBatches(orders, 2000);
-        // 2. 提交所有批次任务
         List<CompletableFuture<Void>> futures = batches.stream()
                 .map(batch -> insertAsync("order_detail", batch, executor))
                 .collect(Collectors.toList());
-        // 3. 等待所有任务完成
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .whenComplete((v, e) -> {
                     executor.shutdown();
@@ -90,7 +87,6 @@ public class ConcurrentLoad {
     }
 
     public void parseCsv(List<ClientRecord> clients, List<SalesRecord> sales, List<ProductRecord> products, List<ProductModelRecord> productModel, List<ContractRecord> contract, List<OrderRecord> order) throws Exception {
-        // 与原代码相同，通过 CSV 文件解析其他表数据
         try (CSVReader reader = new CSVReader(new FileReader(CSV_PATH))) {
             System.out.println("open csv successfully");
             String[] headers = reader.readNext();
@@ -98,7 +94,6 @@ public class ConcurrentLoad {
 
             while ((row = reader.readNext()) != null) {
                 Map<String, String> rowMap = toRowMap(headers, row);
-                // 提取各表数据（根据实际字段填充）
                 clients.add(new ClientRecord(
                         rowMap.get("client enterprise"),
                         rowMap.get("country"),
@@ -157,7 +152,7 @@ public class ConcurrentLoad {
         }
     }
 
-    // 分批次工具方法
+    // tool method
     private <T> List<List<T>> splitIntoBatches(List<T> list, int batchSize) {
         List<List<T>> batches = new ArrayList<>();
         for (int i = 0; i < list.size(); i += batchSize) {
@@ -234,7 +229,7 @@ public class ConcurrentLoad {
         }, executor);
     }
 
-    //overload
+    // overload
     private <T> CompletableFuture<Void> insertAsync(
             String tableName,
             List<T> records
@@ -266,7 +261,6 @@ public class ConcurrentLoad {
 
     // ================ 辅助方法 ================
     private String buildInsertSql(String tableName) {
-        // 根据表名返回 SQL（与原代码相同）
         switch (tableName) {
             case "client":
                 return "INSERT INTO client (client_name, country, supply_center, city, industry) " +
@@ -292,7 +286,6 @@ public class ConcurrentLoad {
     }
 
     private void bindParameters(PreparedStatement stmt, String tableName, Object record) throws SQLException {
-        // 与原代码相同
         switch (tableName) {
             case "client":
                 ClientRecord client = (ClientRecord) record;
@@ -377,7 +370,6 @@ public class ConcurrentLoad {
         public String getClientName() {
             return clientName;
         }
-        // 构造方法、Getter
     }
 
     private static class SalesRecord {
@@ -398,7 +390,6 @@ public class ConcurrentLoad {
         public String getSalesmanNumber() {
             return salesmanNumber;
         }
-        // 构造方法、Getter
     }
 
     private static class ProductRecord {
