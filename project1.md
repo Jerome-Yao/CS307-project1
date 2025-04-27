@@ -1,3 +1,5 @@
+
+
 # Spring 2025 CS307 Project1
 
 ## OurTeam
@@ -120,9 +122,10 @@ in `src/C++`
 
 #### How to use
 
-1. Read `env.txt` and configure the environment
-2. use cmake and make to create executable file
-3. run the code to import data
+1.  Begin by reading the `env.txt` file, which contains critical environment variables and settings required for the project.
+2. Utilize `cmake` to generate build files tailored for your specific system and compiler. 
+3. use `make` to compile the source code into an executable file
+4. Once the executable is built, run the program to initiate the data import process. 
 
 ## Advanced
 
@@ -130,7 +133,10 @@ in `src/C++`
 
 #### Java
 
-- In concurrent mode, the script first parses the data and stores it into a list. It then imports the data in three concurrent batches based on parent-child table relationships. Each batch is mutually independent, allowing concurrent imports. Lower-level data depends on the completion of higher-level data. The third batch exclusively imports the ​order_details​ table by splitting the list into multiple sub-batches for multi-threaded import.
+- **Data Parsing and Storing**: Initially, the script parses the input data and stores it into a list structure. This list serves as a temporary repository that holds the data before it is imported into the database.
+- **Concurrent Batch Imports**: The data is then imported in three separate concurrent batches. This approach is based on the parent-child relationships between different tables within the database.
+- **Order Details Import**: The third batch is dedicated exclusively to importing the `order_details` table. This is a critical step because the `order_details` table often contains a large volume of data that needs to be processed.
+- **Sub-Batching for Multi-Threaded Import**: To further enhance the efficiency of the import process, the list containing `order_details` data is split into multiple sub-batches. These sub-batches are then imported concurrently using multi-threading, which helps to distribute the workload and reduce the total import time.
 
 #### Python
 
@@ -140,9 +146,9 @@ in `src/C++`
 
 #### C++
 
-- Uses `std::async` and `std::future` to implement multi-threaded parallel insertion of data into different tables
-- Uses `pqxx::stream_to` for batch streaming insertion  instead of executing SQL statements row by row, reducing database round  trips and significantly improving insertion efficiency
-- Uses pass-by-reference to avoid data copying (`std::ref`)
+- **Multi-threaded Parallel Insertion**: The script utilizes `std::async` and `std::future` to implement multi-threaded operations. This allows concurrent data insertion into different tables, significantly enhancing the overall data import speed by leveraging the processing power of multiple CPU cores.
+- **Batch Streaming Insertion**: Instead of executing individual SQL statements for each row, the script employs `pqxx::stream_to` for batch streaming insertion. This method reduces the number of database round trips, thus improving insertion efficiency and minimizing the load on the database server.
+- **Avoiding Data Copying**: To further optimize performance, the script uses pass-by-reference with `std::ref` to avoid unnecessary data copying. This technique helps in reducing memory usage and improves the speed of data transfer between the application and the database.
 
 
 
@@ -161,21 +167,60 @@ in `src/C++`
 
 ![](./tools/cpp_performance.png)
 
+​	Overall, the macOS system demonstrates good performance in data import  operations across different data scales, while the Ubuntu system  performs relatively poorly. The performance of the Windows system falls  between the two. This may be related to factors such as the system  architecture, memory management, and I/O performance of each operating  system.
+
 ![](./tools/java_performance.png)
+
+​	The chart clearly shows that parallel processing mode significantly  outperforms single-thread mode on all operating systems. Among them,  macOS demonstrates the best performance in both modes, while Windows has the poorest performance in single-thread mode. The parallel processing  mode reduces the execution time by more than half, showing its  efficiency in handling large volumes of data.
 
 ![](./tools/python_performance.png)
 
+​	These charts shows that in general, the Java scripts have the best  performance, followed by C++ and then Python. 
+
+​	Multithreading can  significantly improve the execution speed of the scripts. For example,  in Ubuntu 22.04, the Java multithreading script runs about 2 times  faster than the single-threaded version; the C++ multithreading script  runs about 1.25 times faster than the single-threaded version.
+
+​	The main cost of time is connect to the database which make the original scripts run slower than the imporved version.
+
 ### other databases
 
+​	In this project, in addition to the originally required  PostgreSQL database, we also used the openGauss and MySQL database  systems. The purpose of this work is to explore the characteristics and  differences of different database systems in terms of data storage,  query performance, and data import. By implementing the project on  openGauss and MySQL, we gained a deeper understanding of these  databases' architectural features, SQL dialect differences. For instance, on openGauss, we  explore how to use docker to run the database which can help us use DBMS more conventiently in the future.
+
 #### Mysql
+
+​	When migrating to MySQL, the SQL syntax differences from PostgreSQL  require modifications to both the table creation scripts and data import logic:
+
+#### **1. Database Schema Adjustments**
+
+- **Data Types**:
+  - Replace PostgreSQL’s `SERIAL` with MySQL’s `AUTO_INCREMENT`.
+  - MySQL implements `BOOLEAN` as `TINYINT(1)`, unlike PostgreSQL’s native `BOOLEAN`.
+- **Constraints & Indexes**:
+  - MySQL lacks `EXCLUDE` constraints; use `UNIQUE` or application checks.
+  - Foreign key actions (`ON DELETE/UPDATE`) must be explicitly defined.
+
+#### **2. Data Import Logic Changes**
+
+- **Bulk Insert Optimization**:
+  - Replace PostgreSQL’s `COPY` with MySQL’s `LOAD DATA INFILE` or batched `INSERT`.
+  - Use `INSERT IGNORE` or `ON DUPLICATE KEY UPDATE` instead of PostgreSQL’s `ON CONFLICT DO NOTHING`.
+- **Connection & Transactions**:
+  - MySQL defaults to `REPEATABLE READ` isolation (vs. PostgreSQL’s `READ COMMITTED`).
 
 ![](/home/wgx/database/CS307-project1/mysql.png)
 
 #### OpenGauss
 
+​	During the process of using the openGauss database, we found that due to the use of Docker containerization deployment, port mapping is required to enable database management tools like DataGrip to connect and operate the database. 
+
+​	At the same time, although openGauss is a database developed by Huawei based on PostgreSQL, and it is compatible with PostgreSQL in many aspects, there are still differences in some SQL syntax and usage habits. We need to modifying some incompatible SQL statements, adjusting database configuration parameters, and optimizing query performance.
+
+​	Through this process, we have not only learned how to deploy and manage databases in a containerized environment but also deepened our understanding of the differences between different database systems. 
+
 ![](./opengauss.png)
 
 ### import data with different data volumes
+
+
 
 | data volume | single-thread time(s) | multithreading time(s) |
 | :---------: | :-------------------: | :--------------------: |
@@ -185,4 +230,13 @@ in `src/C++`
 |     75%     |         11.74         |          5.40          |
 |    100%     |         12.49         |          5.70          |
 
+​	In general, multithreading demonstrates high efficiency in data  processing tasks. Particularly when dealing with large volumes of data,  the advantages of multithreading become more pronounced. Compared to  single-threading, multithreading can complete data processing tasks more quickly, thereby enhancing the system's throughput and response speed. 
+
 ![](./tools/diff_vol.png)
+
+​	Additionally, it has been observed that the import speed has an  approximately linear relationship with the data volume. This implies  that as the data volume increases, the import speed also increases  correspondingly, but at a relatively stable rate. 
+
+ 	In practical applications, we can choose between single-threading and  multithreading processing methods based on the amount of data to achieve optimal performance.
+
+## Conclusion
+​	In this project, we first established a relational database according to the data information stored in csv files, and then successfully imported the data into it. In the process of import, we further deepen our understanding and application of data import knowledge by comparing the efficiency differences between different import methods. In addition, we analyzed the data in different languages and compared different DBMS, which gave us an insight into different database management system. In the continuous experiment and comparison, our understanding of database index is also deepening.
