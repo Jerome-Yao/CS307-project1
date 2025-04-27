@@ -8,10 +8,10 @@ from psycopg2.extras import execute_batch
 # 数据库配置
 DB_CONFIG = {
     "host": "localhost",
-    "database": "project1",
-    "user": "postgres",
-    "password": "123",
-    "port": 5432
+    "database": "postgres",
+    "user": "gaussdb",
+    "password": "Wgx@20050109",
+    "port": 8888
 }
 
 file_path = "../../resources/output25S.csv"
@@ -42,7 +42,7 @@ def create_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 def safe_batch_insert(conn, table: str, columns: list, data: list, conflict_cols: list = None):
-    """安全批量插入（带冲突处理）"""
+    """安全批量插入（解决临时序列问题）"""
     if not data:
         return 0
     
@@ -52,31 +52,43 @@ def safe_batch_insert(conn, table: str, columns: list, data: list, conflict_cols
     
     try:
         with conn.cursor() as cursor:
-            # 创建临时表
-            cursor.execute(f"""
-                CREATE TEMP TABLE {temp_table} 
-                (LIKE {table} INCLUDING DEFAULTS)
-                ON COMMIT DROP
-            """)
+            # 在创建临时表前先删除可能存在的临时表
+            drop_temp_table_sql = f"DROP TABLE IF EXISTS {temp_table}"
+            cursor.execute(drop_temp_table_sql)
+
+            # 创建临时表，仅包含需要的列并定义为TEXT类型
+            columns_definition = ', '.join([f'"{col}" TEXT' for col in columns])
+            create_temp_table_sql = f"""
+                CREATE TEMP TABLE {temp_table} (
+                    {columns_definition}
+                ) ON COMMIT DELETE ROWS
+            """
+            cursor.execute(create_temp_table_sql)
             
-            # 批量插入临时表
+            # 插入临时表
             execute_batch(cursor,
                 f"INSERT INTO {temp_table} ({cols_str}) VALUES ({placeholders})",
                 data
             )
             
-            # 主表插入
-            conflict_clause = ""
+            # 处理冲突逻辑
             if conflict_cols:
-                conflict_cols_str = ', '.join(conflict_cols)
-                conflict_clause = f"ON CONFLICT ({conflict_cols_str}) DO NOTHING"
-                
-            insert_sql = f"""
-                INSERT INTO {table} ({cols_str})
-                SELECT {cols_str} FROM {temp_table}
-                {conflict_clause}
-            """
-            
+                conflict_conditions = ' AND '.join([f"{table}.{col} = {temp_table}.{col}" for col in conflict_cols])
+                insert_sql = f"""
+                    INSERT INTO {table} ({cols_str})
+                    SELECT {cols_str} 
+                    FROM {temp_table}
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM {table} 
+                        WHERE {conflict_conditions}
+                    )
+                """
+            else:
+                insert_sql = f"""
+                    INSERT INTO {table} ({cols_str})
+                    SELECT {cols_str} FROM {temp_table}
+                """
             cursor.execute(insert_sql)
             return cursor.rowcount
     except Exception as e:
