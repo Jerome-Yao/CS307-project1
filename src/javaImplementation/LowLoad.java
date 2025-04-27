@@ -24,7 +24,7 @@ public class LowLoad {
     public LowLoad(Connection conn, HikariDataSource dataSource) {
         this.conn = conn;
         this.dataSource = dataSource;
-        this.executor = Executors.newFixedThreadPool(8); // 按需调整线程数
+        this.executor = Executors.newFixedThreadPool(1);
         try {
             this.conn.setAutoCommit(false); // 关闭自动提交
         } catch (SQLException e) {
@@ -58,7 +58,7 @@ public class LowLoad {
             e.printStackTrace();
         }
 
-        //second load
+        // second load
         CompletableFuture<Void> productModelFuture = insertAsync("product_model", productModels, productModelRecord -> productModelRecord.productCode + "#" + productModelRecord.productModel);
         CompletableFuture<Void> contractFuture = insertAsync("contract", contracts, ContractRecord::getContractNumber);
 
@@ -70,6 +70,7 @@ public class LowLoad {
             e.printStackTrace();
         }
 
+        // third load
         CompletableFuture<Void> orderFuture = insertAsync("order_detail", orders);
         try {
             CompletableFuture.allOf(orderFuture).get();
@@ -82,7 +83,6 @@ public class LowLoad {
     }
 
     private void parseCsv(List<ClientRecord> clients, List<SalesRecord> sales, List<ProductRecord> products, List<ProductModelRecord> productModel, List<ContractRecord> contract, List<OrderRecord> order) throws Exception {
-        // 与原代码相同，通过 CSV 文件解析其他表数据
         try (CSVReader reader = new CSVReader(new FileReader(CSV_PATH))) {
             System.out.println("open csv successfully");
             String[] headers = reader.readNext();
@@ -90,7 +90,6 @@ public class LowLoad {
 
             while ((row = reader.readNext()) != null) {
                 Map<String, String> rowMap = toRowMap(headers, row);
-                // 提取各表数据（根据实际字段填充）
                 clients.add(new ClientRecord(
                         rowMap.get("client enterprise"),
                         rowMap.get("country"),
@@ -187,7 +186,7 @@ public class LowLoad {
         }, executor);
     }
 
-    //overload
+    // overload
     private <T> CompletableFuture<Void> insertAsync(
             String tableName,
             List<T> records
@@ -220,9 +219,7 @@ public class LowLoad {
         }, executor);
     }
 
-    // 根据表名返回 SQL 语句
     private String buildInsertSql(String tableName) {
-        // 根据表名返回 SQL（与原代码相同）
         switch (tableName) {
             case "client":
                 return "INSERT INTO client (client_name, country, supply_center, city, industry) " +
@@ -314,7 +311,7 @@ public class LowLoad {
         return map;
     }
 
-    public static class ClientRecord   {
+    public static class ClientRecord {
         String clientName;
         String country;
         String supplyCenter;
@@ -332,10 +329,9 @@ public class LowLoad {
         public String getClientName() {
             return clientName;
         }
-        // 构造方法、Getter
     }
 
-    private static class SalesRecord   {
+    private static class SalesRecord {
         String salesmanNumber;
         String salesmanName;
         String gender;
@@ -353,10 +349,9 @@ public class LowLoad {
         public String getSalesmanNumber() {
             return salesmanNumber;
         }
-        // 构造方法、Getter
     }
 
-    private static class ProductRecord   {
+    private static class ProductRecord {
         String productCode;
         String productName;
 
@@ -370,7 +365,7 @@ public class LowLoad {
         }
     }
 
-    private static class ProductModelRecord   {
+    private static class ProductModelRecord {
         String productCode;
         String productModel;
         int unit_price;
@@ -382,7 +377,7 @@ public class LowLoad {
         }
     }
 
-    public static class ContractRecord  {
+    public static class ContractRecord {
         String contractNumber;
         String clientName;
         LocalDate contractDate;
