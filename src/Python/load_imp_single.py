@@ -131,7 +131,7 @@ def main():
     order_data = df[[
         'contract number', 'product code', 'product model', 
         'quantity', 'estimated delivery date', 'lodgement date', 'salesman number'
-    ]]
+    ]].copy()
     order_data['salesman number'] = order_data['salesman number'].astype(int)
     order_data = order_data.values.tolist()
     
