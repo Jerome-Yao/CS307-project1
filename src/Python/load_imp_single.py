@@ -9,7 +9,7 @@ from psycopg2.extras import execute_batch
 DB_CONFIG = {
     "host": "localhost",
     "database": "project1",
-    "user": "postgres",
+    "user": "normaluser",
     "password": "123",
     "port": 5432
 }

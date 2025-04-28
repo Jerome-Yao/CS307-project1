@@ -10,7 +10,7 @@ from typing import List, Tuple, Optional
 DB_CONFIG = {
     "host": "localhost",
     "database": "project1",
-    "user": "postgres",
+    "user": "normaluser",
     "password": "123",
     "port": 5432,
     "min_size": 5,
