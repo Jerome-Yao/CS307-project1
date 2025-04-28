@@ -11,9 +11,14 @@
 
 ## E-R diagram
 
+![[E-R.png]]
+- The E-R diagram is drawn on the processon
+
+## DataGrip Diagram
+
 ![](./E-R-datagrip.png)
 
-- The E-R diagram is drawn on the processon
+
 
 ## Database Design
 
